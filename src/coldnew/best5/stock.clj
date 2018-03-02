@@ -59,30 +59,30 @@
 
 (defn- translate-keys
   [coll]
-  (clojure.set/rename-keys
-   {:c     :股票代號
-    :s     :當盤成交量
-    :ch    :channel
-    :ex    :上市或上櫃            ; tse: 上市, otc: 上櫃
-    :n     :股票暱稱              ; ex: 台泥
-    :nf    :股票全名              ; 台灣水泥股份有限公司
-    :z     :最近成交價
-    :tv    :當盤成交量            ; temporal volume
-    :v     :當日累計成交量        ; volume
-    :a     :最佳五檔賣出價格
-    :f     :最佳五檔賣出數量
-    :b     :最佳五檔買入價格
-    :g     :最佳五檔買入數量
-    :tlong :資料時間              ; :t (long)
-    :t     :揭示時間
-    :o     :開盤價
-    :d     :今日日期
-    :h     :今日最高
-    :l     :今日最低
-    :u     :漲停點
-    :w     :跌停點
-    :y     :昨收
-    } coll))
+  (-> coll
+      (clojure.set/rename-keys
+       {:c     :股票代號
+        :s     :當盤成交量
+        :ch    :channel
+        :ex    :上市或上櫃                  ; tse: 上市, otc: 上櫃
+        :n     :股票暱稱                    ; ex: 台泥
+        :nf    :股票全名                    ; 台灣水泥股份有限公司
+        :z     :最近成交價
+        :tv    :當盤成交量                  ; temporal volume
+        :v     :當日累計成交量              ; volume
+        :a     :最佳五檔賣出價格
+        :f     :最佳五檔賣出數量
+        :b     :最佳五檔買入價格
+        :g     :最佳五檔買入數量
+        :tlong :資料時間                    ; :t (long)
+        :t     :揭示時間
+        :o     :開盤價
+        :d     :今日日期
+        :h     :今日最高
+        :l     :今日最低
+        :u     :漲停點
+        :w     :跌停點
+        :y     :昨收})))
 
 (defn getStockInfo
   "Get stock info according to stock-id"
