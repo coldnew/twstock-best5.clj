@@ -1,4 +1,4 @@
-(ns best5.core)
+(ns coldnew.best5.core)
 
 (defn foo
   "I don't do a whole lot."

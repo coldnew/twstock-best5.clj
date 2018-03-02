@@ -7,6 +7,12 @@ A Clojure library designed to ... well, that part is up to you.
 
 FIXME
 
+## TODO
+
+- [ ] 參考 [kentyeh/stockbest5](https://bitbucket.org/kentyeh/stockbest5) 完成雛型
+- [ ] 加入 cljs node 支援
+- [ ] 使用 nexec 編譯出單獨的執行檔
+
 ## License
 
 Copyright © 2018 Yen-Chin, Lee <<coldnew.tw@gmail.com>>
