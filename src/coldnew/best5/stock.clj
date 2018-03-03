@@ -24,18 +24,19 @@
                     (drop 8)
                     (partition 7))]
     (->> parse
-         (map #(let [a (first %)
-                     a0 (str/split a #"　")]
-                 (flatten               ; <=== FIXME: I don't like flatten
+         (map #(let [a (first %) ; "代號 名稱" 合在一起，我們要將它分開
+                     a0 (str/split a #"　")
+                     n (or (last %) "")] ; 最後一項不要 nil,  將其變成空字串
+                 (flatten                ; 合併回單一 list
                   (conj
-                   (rest %)
-                   (rest a0)
-                   (first a0)))))
+                   (list n)             ; :備註
+                   (take 5  (rest %))   ; :ISINCode :上市日 :市場別 :產業別 :CFICode
+                   (rest a0)            ; :名稱
+                   (first a0)))))       ; :代號
          (map #(zipmap [:代號 :名稱 :ISINCode :上市日 :市場別 :產業別 :CFICode :備註] %)))))
 
 ;; for test
 #_(getStockLists)
-
 
 ;; 
 
