@@ -87,8 +87,13 @@
 
 (defn getStockInfo
   "Get stock info according to stock-id"
-  [stock-id]
-  (let [cs (clj-http.cookies/cookie-store)]
+  [stock-id type]
+  (let [cs (clj-http.cookies/cookie-store)
+        ex_ch (str (case type
+                         "上市" "tse_"
+                         "上櫃" "otc_"
+                         (throw (ex-info "Wrong type" {:stock-id stock-id :type type})))
+                       stock-id ".tw")]
     ;; first retrive cookies data
     (fetch-data "http://mis.twse.com.tw/stock/api/getStockInfo.jsp"
                 {:cookie-store cs
@@ -99,7 +104,7 @@
     ;; we use the cookies data to get the stock info
     (if-let [ret (fetch-data "http://mis.twse.com.tw/stock/api/getStockInfo.jsp"
                              {:cookie-store cs
-                              :query-params {:ex_ch (str "tse_" stock-id ".tw")
+                              :query-params {:ex_ch ex_ch
                                              :json 1
                                              :delay 0
                                              :_ (unix-timestamp)}})]
@@ -107,4 +112,5 @@
       (throw (ex-info "getStockInfo failed." {:stock-id stock-id})))))
 
 ;; for test
-#_(getStockInfo 2330)
+#_(getStockInfo 2330 "上市")
+#_(getStockInfo 6488 "上櫃")
