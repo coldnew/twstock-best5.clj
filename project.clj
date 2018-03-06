@@ -8,7 +8,9 @@
                  [clj-http "3.7.0"]
                  [cheshire "5.8.0"]
                  [hickory "0.7.1"]
-                 [clj-time "0.14.2"]]
+                 [clj-time "0.14.2"]
+                 [datascript "0.16.3"]
+                 [datascript-transit "0.2.2"]]
 
   :source-paths ["src"]
   :test-paths ["test"]
