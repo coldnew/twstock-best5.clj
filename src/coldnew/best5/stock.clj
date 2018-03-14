@@ -3,9 +3,7 @@
             [clj-http.client :as http]
             [clojure.pprint :refer [cl-format]]
             [hickory.core :as hickory]
-            [hickory.select :as s]
-            [clojure.pprint :as pprint]
-            ))
+            [hickory.select :as s]))
 
 
 (defn unix-timestamp
