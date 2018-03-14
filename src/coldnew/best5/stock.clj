@@ -49,7 +49,7 @@
                    (rest %) ; :ISINCode :上市日 :市場別 :產業別 :CFICode :備註
                    (rest a0)            ; :名稱
                    (first a0)))))
-         (map #(zipmap [:代號 :名稱 :ISINCode :上市日 :市場別 :產業別 :CFICode :備註] %)))))
+         (mapv #(zipmap [:代號 :名稱 :ISINCode :上市日 :市場別 :產業別 :CFICode :備註] %)))))
 
 ;; 簡單的測試
 (comment
