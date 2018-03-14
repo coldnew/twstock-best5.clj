@@ -3,7 +3,9 @@
             [clj-http.client :as http]
             [clojure.pprint :refer [cl-format]]
             [hickory.core :as hickory]
-            [hickory.select :as s]))
+            [hickory.select :as s]
+            [clojure.pprint :as pprint]
+            ))
 
 
 (defn unix-timestamp
@@ -13,30 +15,53 @@
 
 ;; 
 
+;; 取得上市公司列表
 (defn getStockLists
   "Get the Taiwan's stock lists info."
   []
+  ;; 上市
   (let [html (-> (http/get "http://isin.twse.com.tw/isin/C_public.jsp?strMode=2"
                            {:as "BIG5"}) :body)
         hickory (-> html hickory/parse hickory/as-hickory)
-        parse  (->> (s/select (s/child (s/tag :td)) hickory)
-                    (map #(-> % :content last))
-                    (drop 8)
-                    (partition 7))]
+        parse (->> (s/select (s/child (s/tag :td)) hickory)
+                   (map #(-> % :content last))
+                   ;; 過濾掉我們不要的資訊
+                   (filter #(not (or (map? %)
+                                     (contains? #{"有價證券代號及名稱 "
+                                                  "上市日"
+                                                  "國際證券辨識號碼(ISIN Code)"
+                                                  "市場別"
+                                                  "產業別"
+                                                  "CFICode"
+                                                  "備註"
+                                                  " 股票 "
+                                                  " 臺灣存託憑證(TDR) "
+                                                  " 受益證券-不動產投資信託 "
+                                                  } %))))
+                   ;; 將 nil 變成 "", datascript 無法接受nil
+                   (map #(or % ""))
+                   (partition 7))]
     (->> parse
          (map #(let [a (first %) ; "代號 名稱" 合在一起，我們要將它分開
-                     a0 (str/split a #"　")
-                     n (or (last %) "")] ; 最後一項不要 nil,  將其變成空字串
-                 (flatten                ; 合併回單一 list
+                     a0 (str/split a #"　")]
+                 (flatten               ; 合併回單一 list
                   (conj
-                   (list n)             ; :備註
-                   (take 5  (rest %))   ; :ISINCode :上市日 :市場別 :產業別 :CFICode
+                   (rest %) ; :ISINCode :上市日 :市場別 :產業別 :CFICode :備註
                    (rest a0)            ; :名稱
-                   (first a0)))))       ; :代號
+                   (first a0)))))
          (map #(zipmap [:代號 :名稱 :ISINCode :上市日 :市場別 :產業別 :CFICode :備註] %)))))
 
-;; for test
-#_(getStockLists)
+;; 簡單的測試
+(comment
+  ;; 列出上市公司列表
+  (getStockLists)
+  ;; 寫入到檔案避免 repl 太慢
+  (let [x (getStockLists)
+        f-name "db.txt"]
+    (delete-file f-name)
+    (doseq [x X]
+      (spit f-name (prn-str x) :append true)))
+  )
 
 ;; 
 
@@ -90,10 +115,10 @@
   [stock-id type]
   (let [cs (clj-http.cookies/cookie-store)
         ex_ch (str (case type
-                         "上市" "tse_"
-                         "上櫃" "otc_"
-                         (throw (ex-info "Wrong type" {:stock-id stock-id :type type})))
-                       stock-id ".tw")]
+                     "上市" "tse_"
+                     "上櫃" "otc_"
+                     (throw (ex-info "Wrong type" {:stock-id stock-id :type type})))
+                   stock-id ".tw")]
     ;; first retrive cookies data
     (fetch-data "http://mis.twse.com.tw/stock/api/getStockInfo.jsp"
                 {:cookie-store cs
