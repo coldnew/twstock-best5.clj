@@ -12,12 +12,10 @@
   (System/currentTimeMillis))
 
 ;; 
-
 ;; 取得上市公司列表
-(defn getStockLists
-  "Get the Taiwan's stock lists info."
+(defn getStockListsTWSE
+  "Get the Taiwan's stock lists info for twse."
   []
-  ;; 上市
   (let [html (-> (http/get "http://isin.twse.com.tw/isin/C_public.jsp?strMode=2"
                            {:as "BIG5"}) :body)
         hickory (-> html hickory/parse hickory/as-hickory)
@@ -49,12 +47,13 @@
                    (first a0)))))
          (mapv #(zipmap [:代號 :名稱 :ISINCode :上市日 :市場別 :產業別 :CFICode :備註] %)))))
 
+
 ;; 簡單的測試
 (comment
   ;; 列出上市公司列表
-  (getStockLists)
+  (getStockListsTWSE)
   ;; 寫入到檔案避免 repl 太慢
-  (let [x (getStockLists)
+  (let [x (getStockListsTWSE)
         f-name "db.txt"]
     (delete-file f-name)
     (doseq [x X]
