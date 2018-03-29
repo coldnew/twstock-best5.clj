@@ -3,7 +3,8 @@
             [clj-http.client :as http]
             [clojure.pprint :refer [cl-format]]
             [hickory.core :as hickory]
-            [hickory.select :as s]))
+            [hickory.select :as s]
+            [clojure.java.io :as io]))
 
 
 (defn unix-timestamp
@@ -12,6 +13,7 @@
   (System/currentTimeMillis))
 
 ;; 
+
 ;; 取得上市公司列表
 (defn getStockListsTWSE
   "Get the Taiwan's stock lists info for twse."
@@ -47,18 +49,63 @@
                    (first a0)))))
          (mapv #(zipmap [:代號 :名稱 :ISINCode :上市日 :市場別 :產業別 :CFICode :備註] %)))))
 
-
 ;; 簡單的測試
-(comment
-  ;; 列出上市公司列表
-  (getStockListsTWSE)
-  ;; 寫入到檔案避免 repl 太慢
-  (let [x (getStockListsTWSE)
+
+;; 列出上市公司列表
+#_(getStockListsTWSE)
+
+;; 寫入到檔案避免 repl 太慢
+#_(let [X (getStockListsTWSE)
         f-name "db.txt"]
-    (delete-file f-name)
+    (io/delete-file f-name)
     (doseq [x X]
       (spit f-name (prn-str x) :append true)))
-  )
+
+;; 取得上櫃公司列表
+(defn getStockListsOTC
+  "Get the Taiwan's stock lists info for otc."
+  []
+  (let [html (-> (http/get "http://isin.twse.com.tw/isin/C_public.jsp?strMode=4"
+                           {:as "BIG5"}) :body)
+        hickory (-> html hickory/parse hickory/as-hickory)
+        parse (->> (s/select (s/child (s/tag :td)) hickory)
+                   (map #(-> % :content last))
+                   ;; 過濾掉我們不要的資訊
+                   (filter #(not (or (map? %)
+                                     (contains? #{"有價證券代號及名稱 "
+                                                  "上市日"
+                                                  "國際證券辨識號碼(ISIN Code)"
+                                                  "市場別"
+                                                  "產業別"
+                                                  "CFICode"
+                                                  "備註"
+                                                  " 上櫃認購 (售) 權證  "
+                                                  " 臺灣存託憑證 "
+                                                  " 受益證券 - 資產基礎證券 "
+                                                  } %))))
+                   ;; 將 nil 變成 "", datascript 無法接受nil
+                   (map #(or % ""))
+                   (partition 7))]
+    (->> parse
+         (map #(let [a (first %) ; "代號 名稱" 合在一起，我們要將它分開
+                     a0 (str/split a #"　")]
+                 (flatten               ; 合併回單一 list
+                  (conj
+                   (rest %) ; :ISINCode :上市日 :市場別 :產業別 :CFICode :備註
+                   (rest a0)            ; :名稱
+                   (first a0)))))
+         (mapv #(zipmap [:代號 :名稱 :ISINCode :上市日 :市場別 :產業別 :CFICode :備註] %)))))
+
+;; 簡單的測試
+
+;; 列出上市公司列表
+#_(getStockListsOTC)
+;; 寫入到檔案避免 repl 太慢
+#_(let [X (getStockListsOTC)
+      f-name "db.txt"]
+  (io/delete-file f-name)
+  (doseq [y X]
+    (spit f-name (prn-str y) :append true)))
 
 ;; 
 
